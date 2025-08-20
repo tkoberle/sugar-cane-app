@@ -1,0 +1,54 @@
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CyclesStackParamList } from '../../types';
+import CycleOverviewScreen from '../../screens/Cycles/CycleOverviewScreen';
+import CycleDetailsScreen from '../../screens/Cycles/CycleDetailsScreen';
+import ProductionEntryScreen from '../../screens/Cycles/ProductionEntryScreen';
+import ATRTrackingScreen from '../../screens/Cycles/ATRTrackingScreen';
+import CyclePlanningScreen from '../../screens/Cycles/CyclePlanningScreen';
+
+const Stack = createNativeStackNavigator<CyclesStackParamList>();
+
+const CyclesStack: React.FC = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#2E7D32',
+        },
+        headerTintColor: '#FFFFFF',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="CycleOverview" 
+        component={CycleOverviewScreen}
+        options={{ title: 'Ciclos de Produção' }}
+      />
+      <Stack.Screen 
+        name="CycleDetails" 
+        component={CycleDetailsScreen}
+        options={{ title: 'Detalhes do Ciclo' }}
+      />
+      <Stack.Screen 
+        name="ProductionEntry" 
+        component={ProductionEntryScreen}
+        options={{ title: 'Registrar Produção' }}
+      />
+      <Stack.Screen 
+        name="ATRTracking" 
+        component={ATRTrackingScreen}
+        options={{ title: 'Acompanhar ATR' }}
+      />
+      <Stack.Screen 
+        name="CyclePlanning" 
+        component={CyclePlanningScreen}
+        options={{ title: 'Planejamento de Ciclos' }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+export default CyclesStack;
