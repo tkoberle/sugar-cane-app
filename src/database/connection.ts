@@ -6,14 +6,17 @@ let SQLite: any;
 
 if (Platform.OS === 'web') {
   // For web, we'll use a mock implementation with sample data
-  const { samplePlots } = require('../constants/sampleData');
+  const samplePlotsModule = require('../constants/sampleData');
+  const samplePlots = samplePlotsModule.samplePlots;
   
   SQLite = {
     openDatabaseAsync: () => Promise.resolve({
       execAsync: () => Promise.resolve([]),
       getAllAsync: (query: string) => {
         // Mock plots data for web
+        console.log('[WEB] getAllAsync called with query:', query);
         if (query.includes('FROM plots')) {
+          console.log('[WEB] Returning', samplePlots.length, 'sample plots');
           return Promise.resolve(samplePlots.map(plot => ({
             id: plot.id,
             number: plot.number,

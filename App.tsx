@@ -17,6 +17,7 @@ export default function App() {
         // Seed database with sample data
         await DataSeeder.seedDatabase();
         console.log('Database seeding completed');
+        
       } catch (error) {
         console.error('Error initializing database:', error);
       }
