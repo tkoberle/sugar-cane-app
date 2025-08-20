@@ -5,12 +5,55 @@ import { createTablesSQL, insertCycleCategoriesSQL, createIndexesSQL } from './s
 let SQLite: any;
 
 if (Platform.OS === 'web') {
-  // For web, we'll use a mock implementation
+  // For web, we'll use a mock implementation with sample data
+  const { samplePlots } = require('../constants/sampleData');
+  
   SQLite = {
     openDatabaseAsync: () => Promise.resolve({
       execAsync: () => Promise.resolve([]),
-      getAllAsync: () => Promise.resolve([]),
-      getFirstAsync: () => Promise.resolve(null),
+      getAllAsync: (query: string) => {
+        // Mock plots data for web
+        if (query.includes('FROM plots')) {
+          return Promise.resolve(samplePlots.map(plot => ({
+            id: plot.id,
+            number: plot.number,
+            area: plot.area,
+            currentCycle: plot.currentCycle,
+            plantingDate: plot.plantingDate.toISOString(),
+            lastHarvestDate: plot.lastHarvestDate?.toISOString() || null,
+            status: plot.status,
+            coordinates: plot.coordinates ? JSON.stringify(plot.coordinates) : null,
+            soilType: plot.soilType || null,
+            notes: plot.notes || null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })));
+        }
+        return Promise.resolve([]);
+      },
+      getFirstAsync: (query: string, params: any[] = []) => {
+        if (query.includes('FROM plots') && params.length > 0) {
+          const plotId = params[0];
+          const plot = samplePlots.find(p => p.id === plotId);
+          if (plot) {
+            return Promise.resolve({
+              id: plot.id,
+              number: plot.number,
+              area: plot.area,
+              currentCycle: plot.currentCycle,
+              plantingDate: plot.plantingDate.toISOString(),
+              lastHarvestDate: plot.lastHarvestDate?.toISOString() || null,
+              status: plot.status,
+              coordinates: plot.coordinates ? JSON.stringify(plot.coordinates) : null,
+              soilType: plot.soilType || null,
+              notes: plot.notes || null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        }
+        return Promise.resolve(null);
+      },
       runAsync: () => Promise.resolve({ lastInsertRowId: 1, changes: 1 }),
       closeAsync: () => Promise.resolve(),
     }),
@@ -106,8 +149,14 @@ export const executeQuery = async (
   const database = getDatabase();
   try {
     if (Platform.OS === 'web') {
-      // Mock result for web
-      return { rows: { raw: () => [], length: 0, item: () => ({}) } };
+      // Use the mock database for web
+      if (query.trim().toLowerCase().startsWith('select')) {
+        const result = await database.getAllAsync(query, params);
+        return { rows: { raw: () => result, length: result.length, item: (index: number) => result[index] } };
+      } else {
+        const result = await database.runAsync(query, params);
+        return { insertId: result.lastInsertRowId, rowsAffected: result.changes };
+      }
     }
     
     if (query.trim().toLowerCase().startsWith('select')) {
