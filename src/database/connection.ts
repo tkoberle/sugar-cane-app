@@ -5,39 +5,36 @@ import { createTablesSQL, insertCycleCategoriesSQL, createIndexesSQL } from './s
 let SQLite: any;
 
 if (Platform.OS === 'web') {
-  // For web, we'll use a mock implementation or IndexedDB wrapper
-  // In a production app, you might use sql.js or another web-compatible solution
+  // For web, we'll use a mock implementation
   SQLite = {
-    openDatabase: () => Promise.resolve({
-      executeSql: () => Promise.resolve([{ rows: { raw: () => [], length: 0, item: () => ({}) } }]),
-      close: () => Promise.resolve(),
+    openDatabaseAsync: () => Promise.resolve({
+      execAsync: () => Promise.resolve([]),
+      getAllAsync: () => Promise.resolve([]),
+      getFirstAsync: () => Promise.resolve(null),
+      runAsync: () => Promise.resolve({ lastInsertRowId: 1, changes: 1 }),
+      closeAsync: () => Promise.resolve(),
     }),
   };
 } else {
-  SQLite = require('react-native-sqlite-storage');
-  SQLite.DEBUG(false);
-  SQLite.enablePromise(true);
+  // For mobile, use expo-sqlite
+  SQLite = require('expo-sqlite');
 }
 
 const DATABASE_NAME = 'SugarCaneApp.db';
-const DATABASE_VERSION = '1.0';
-const DATABASE_DISPLAYNAME = 'Sugar Cane Farm Management Database';
-const DATABASE_SIZE = 200000;
 
-let db: SQLite.SQLiteDatabase | null = null;
+let db: any = null;
 
-export const openDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
+export const openDatabase = async (): Promise<any> => {
   if (db) {
     return db;
   }
 
   try {
-    db = await SQLite.openDatabase(
-      DATABASE_NAME,
-      DATABASE_VERSION,
-      DATABASE_DISPLAYNAME,
-      DATABASE_SIZE
-    );
+    if (Platform.OS === 'web') {
+      db = await SQLite.openDatabaseAsync();
+    } else {
+      db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    }
 
     console.log('Database opened successfully');
     await initializeDatabase();
@@ -54,17 +51,23 @@ const initializeDatabase = async (): Promise<void> => {
   }
 
   try {
+    if (Platform.OS === 'web') {
+      // Skip initialization on web (mock implementation)
+      console.log('Web platform: skipping database initialization');
+      return;
+    }
+
     // Create tables
     for (const sql of createTablesSQL) {
-      await db.executeSql(sql);
+      await db.execAsync(sql);
     }
 
     // Insert cycle categories reference data
-    await db.executeSql(insertCycleCategoriesSQL);
+    await db.execAsync(insertCycleCategoriesSQL);
 
     // Create indexes
     for (const sql of createIndexesSQL) {
-      await db.executeSql(sql);
+      await db.execAsync(sql);
     }
 
     console.log('Database tables created successfully');
@@ -77,7 +80,9 @@ const initializeDatabase = async (): Promise<void> => {
 export const closeDatabase = async (): Promise<void> => {
   if (db) {
     try {
-      await db.close();
+      if (Platform.OS !== 'web') {
+        await db.closeAsync();
+      }
       db = null;
       console.log('Database closed successfully');
     } catch (error) {
@@ -87,7 +92,7 @@ export const closeDatabase = async (): Promise<void> => {
   }
 };
 
-export const getDatabase = (): SQLite.SQLiteDatabase => {
+export const getDatabase = (): any => {
   if (!db) {
     throw new Error('Database not initialized. Call openDatabase first.');
   }
@@ -97,11 +102,21 @@ export const getDatabase = (): SQLite.SQLiteDatabase => {
 export const executeQuery = async (
   query: string,
   params: any[] = []
-): Promise<SQLite.SQLiteResultSet> => {
+): Promise<any> => {
   const database = getDatabase();
   try {
-    const result = await database.executeSql(query, params);
-    return result[0];
+    if (Platform.OS === 'web') {
+      // Mock result for web
+      return { rows: { raw: () => [], length: 0, item: () => ({}) } };
+    }
+    
+    if (query.trim().toLowerCase().startsWith('select')) {
+      const result = await database.getAllAsync(query, params);
+      return { rows: { raw: () => result, length: result.length, item: (index: number) => result[index] } };
+    } else {
+      const result = await database.runAsync(query, params);
+      return { insertId: result.lastInsertRowId, rowsAffected: result.changes };
+    }
   } catch (error) {
     console.error('Error executing query:', query, error);
     throw error;
