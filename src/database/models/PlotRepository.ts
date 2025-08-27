@@ -5,7 +5,7 @@ export class PlotRepository {
   static async getAllPlots(): Promise<Plot[]> {
     const result = await executeQuery(`
       SELECT 
-        id, number, area, current_cycle as currentCycle,
+        id, number, name, area, current_cycle as currentCycle,
         planting_date as plantingDate, last_harvest_date as lastHarvestDate,
         status, coordinates, soil_type as soilType, notes,
         created_at as createdAt, updated_at as updatedAt
@@ -23,10 +23,19 @@ export class PlotRepository {
     }));
   }
 
+  static async getNextPlotNumber(): Promise<number> {
+    const result = await executeQuery(`
+      SELECT MAX(number) as maxNumber FROM plots
+    `);
+    
+    const maxNumber = result.rows.raw()[0]?.maxNumber || 0;
+    return maxNumber + 1;
+  }
+
   static async getPlotById(id: string): Promise<Plot | null> {
     const result = await executeQuery(`
       SELECT 
-        id, number, area, current_cycle as currentCycle,
+        id, number, name, area, current_cycle as currentCycle,
         planting_date as plantingDate, last_harvest_date as lastHarvestDate,
         status, coordinates, soil_type as soilType, notes,
         created_at as createdAt, updated_at as updatedAt
@@ -49,18 +58,20 @@ export class PlotRepository {
     };
   }
 
-  static async createPlot(plot: Omit<Plot, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  static async createPlot(plot: Omit<Plot, 'id' | 'number' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const id = `plot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
+    const nextNumber = await this.getNextPlotNumber();
 
     await executeQuery(`
       INSERT INTO plots (
-        id, number, area, current_cycle, planting_date, last_harvest_date,
+        id, number, name, area, current_cycle, planting_date, last_harvest_date,
         status, coordinates, soil_type, notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
-      plot.number,
+      nextNumber,
+      plot.name || null,
       plot.area,
       plot.currentCycle,
       plot.plantingDate.toISOString(),
@@ -84,6 +95,10 @@ export class PlotRepository {
     if (plot.number !== undefined) {
       fields.push('number = ?');
       values.push(plot.number);
+    }
+    if (plot.name !== undefined) {
+      fields.push('name = ?');
+      values.push(plot.name);
     }
     if (plot.area !== undefined) {
       fields.push('area = ?');
@@ -134,7 +149,7 @@ export class PlotRepository {
   static async getPlotsByCycle(cycle: number): Promise<Plot[]> {
     const result = await executeQuery(`
       SELECT 
-        id, number, area, current_cycle as currentCycle,
+        id, number, name, area, current_cycle as currentCycle,
         planting_date as plantingDate, last_harvest_date as lastHarvestDate,
         status, coordinates, soil_type as soilType, notes,
         created_at as createdAt, updated_at as updatedAt
@@ -156,7 +171,7 @@ export class PlotRepository {
   static async getPlotsByStatus(status: Plot['status']): Promise<Plot[]> {
     const result = await executeQuery(`
       SELECT 
-        id, number, area, current_cycle as currentCycle,
+        id, number, name, area, current_cycle as currentCycle,
         planting_date as plantingDate, last_harvest_date as lastHarvestDate,
         status, coordinates, soil_type as soilType, notes,
         created_at as createdAt, updated_at as updatedAt

@@ -244,7 +244,7 @@ npm run android  # Android emulator
 
 ### Development Commands
 
-```bash
+```bash∏
 npm run web      # Start web development server
 npm run ios      # Start iOS development
 npm run android  # Start Android development

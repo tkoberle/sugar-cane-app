@@ -4,6 +4,7 @@ export const samplePlots: Plot[] = [
   { 
     id: 'plot_1', 
     number: 1, 
+    name: 'Talhão da Entrada',
     area: 1.29, 
     currentCycle: 0, 
     status: 'reform',
@@ -14,6 +15,7 @@ export const samplePlots: Plot[] = [
   { 
     id: 'plot_2', 
     number: 2, 
+    name: 'Talhão da Várzea',
     area: 5.8, 
     currentCycle: 0, 
     status: 'reform',
@@ -23,6 +25,7 @@ export const samplePlots: Plot[] = [
   { 
     id: 'plot_3', 
     number: 3, 
+    name: 'Talhão Alto',
     area: 11.51, 
     currentCycle: 0, 
     status: 'new',

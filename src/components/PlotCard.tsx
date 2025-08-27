@@ -19,7 +19,9 @@ const PlotCard: React.FC<PlotCardProps> = ({ plot, onPress }) => {
       <Card style={styles.container}>
         <View style={styles.header}>
           <View style={styles.titleContainer}>
-            <Text style={styles.plotNumber}>Talhão {plot.number}</Text>
+            <Text style={styles.plotNumber} numberOfLines={1} ellipsizeMode="tail">
+              {plot.name ? `${plot.number} - ${plot.name}` : `${plot.number}`}
+            </Text>
             <View style={[styles.cycleBadge, { backgroundColor: cycleColor }]}>
               <Text style={styles.cycleText}>{plot.currentCycle}</Text>
             </View>
@@ -72,12 +74,15 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   plotNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2E7D32',
     marginRight: 8,
+    flex: 1,
+    flexShrink: 1,
   },
   cycleBadge: {
     width: 24,

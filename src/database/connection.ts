@@ -15,11 +15,12 @@ if (Platform.OS === 'web') {
       getAllAsync: (query: string) => {
         // Mock plots data for web
         console.log('[WEB] getAllAsync called with query:', query);
-        if (query.includes('FROM plots')) {
+        if (query.includes('FROM plots') && !query.includes('MAX(number)')) {
           console.log('[WEB] Returning', samplePlots.length, 'sample plots');
           return Promise.resolve(samplePlots.map(plot => ({
             id: plot.id,
             number: plot.number,
+            name: plot.name || null,
             area: plot.area,
             currentCycle: plot.currentCycle,
             plantingDate: plot.plantingDate.toISOString(),
@@ -32,6 +33,12 @@ if (Platform.OS === 'web') {
             updatedAt: new Date().toISOString(),
           })));
         }
+        if (query.includes('MAX(number)')) {
+          // Handle getNextPlotNumber query
+          const maxNumber = Math.max(...samplePlots.map(p => p.number));
+          console.log('[WEB] MAX(number) query, returning maxNumber:', maxNumber);
+          return Promise.resolve([{ maxNumber }]);
+        }
         return Promise.resolve([]);
       },
       getFirstAsync: (query: string, params: any[] = []) => {
@@ -42,6 +49,7 @@ if (Platform.OS === 'web') {
             return Promise.resolve({
               id: plot.id,
               number: plot.number,
+              name: plot.name || null,
               area: plot.area,
               currentCycle: plot.currentCycle,
               plantingDate: plot.plantingDate.toISOString(),
@@ -116,7 +124,25 @@ const initializeDatabase = async (): Promise<void> => {
       await db.execAsync(sql);
     }
 
+    // Run migrations for existing databases
+    try {
+      // Add name column if it doesn't exist
+      await db.execAsync('ALTER TABLE plots ADD COLUMN name TEXT');
+      console.log('Migration: Added name column to plots table');
+    } catch (error) {
+      // Column might already exist, ignore error
+      console.log('Migration: name column might already exist');
+    }
+
     console.log('Database tables created successfully');
+    
+    // Seed database with sample data (mobile only)
+    try {
+      const { DataSeeder } = require('../services/DataSeeder');
+      await DataSeeder.seedDatabase();
+    } catch (error) {
+      console.error('Error seeding database:', error);
+    }
   } catch (error) {
     console.error('Error creating database tables:', error);
     throw error;

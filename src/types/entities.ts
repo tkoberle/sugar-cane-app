@@ -1,6 +1,7 @@
 export interface Plot {
   id: string;
   number: number;
+  name?: string;
   area: number;
   currentCycle: number;
   plantingDate: Date;

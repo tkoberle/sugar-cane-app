@@ -5,6 +5,7 @@ import { PlotRepository } from '../../database';
 interface PlotsState {
   plots: Plot[];
   selectedPlot: Plot | null;
+  nextPlotNumber: number;
   loading: boolean;
   error: string | null;
 }
@@ -12,6 +13,7 @@ interface PlotsState {
 const initialState: PlotsState = {
   plots: [],
   selectedPlot: null,
+  nextPlotNumber: 1,
   loading: false,
   error: null,
 };
@@ -30,9 +32,18 @@ export const fetchPlotById = createAsyncThunk(
   }
 );
 
+export const getNextPlotNumber = createAsyncThunk(
+  'plots/getNextPlotNumber',
+  async () => {
+    const nextNumber = await PlotRepository.getNextPlotNumber();
+    console.log('Redux: getNextPlotNumber result:', nextNumber);
+    return nextNumber;
+  }
+);
+
 export const createPlot = createAsyncThunk(
   'plots/createPlot',
-  async (plotData: Omit<Plot, 'id' | 'createdAt' | 'updatedAt'>) => {
+  async (plotData: Omit<Plot, 'id' | 'number' | 'createdAt' | 'updatedAt'>) => {
     const id = await PlotRepository.createPlot(plotData);
     return await PlotRepository.getPlotById(id);
   }
@@ -153,6 +164,9 @@ const plotsSlice = createSlice({
       .addCase(deletePlot.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to delete plot';
+      })
+      .addCase(getNextPlotNumber.fulfilled, (state, action: PayloadAction<number>) => {
+        state.nextPlotNumber = action.payload;
       });
   },
 });

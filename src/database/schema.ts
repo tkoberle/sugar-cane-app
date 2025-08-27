@@ -3,6 +3,7 @@ export const createTablesSQL = [
   `CREATE TABLE IF NOT EXISTS plots (
     id TEXT PRIMARY KEY,
     number INTEGER UNIQUE,
+    name TEXT,
     area REAL NOT NULL,
     current_cycle INTEGER DEFAULT 0,
     planting_date TEXT,
