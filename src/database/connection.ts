@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { createTablesSQL, insertCycleCategoriesSQL, createIndexesSQL } from './schema';
+import { createTablesSQL, insertDefaultCategoriesSQL, createIndexesSQL } from './schema';
 
 // Platform-specific SQLite import
 let SQLite: any;
@@ -116,8 +116,8 @@ const initializeDatabase = async (): Promise<void> => {
       await db.execAsync(sql);
     }
 
-    // Insert cycle categories reference data
-    await db.execAsync(insertCycleCategoriesSQL);
+    // Insert default categories reference data
+    await db.execAsync(insertDefaultCategoriesSQL);
 
     // Create indexes
     for (const sql of createIndexesSQL) {
@@ -197,6 +197,26 @@ export const executeQuery = async (
     }
   } catch (error) {
     console.error('Error executing query:', query, error);
+    throw error;
+  }
+};
+
+export const executeTransaction = async (operations: () => Promise<void>): Promise<void> => {
+  const database = getDatabase();
+  
+  if (Platform.OS === 'web') {
+    // For web, just execute operations without transaction (mock)
+    await operations();
+    return;
+  }
+
+  try {
+    await database.execAsync('BEGIN TRANSACTION');
+    await operations();
+    await database.execAsync('COMMIT');
+  } catch (error) {
+    await database.execAsync('ROLLBACK');
+    console.error('Transaction failed, rolled back:', error);
     throw error;
   }
 };

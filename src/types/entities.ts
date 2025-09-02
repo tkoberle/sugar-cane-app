@@ -14,12 +14,83 @@ export interface Plot {
   updatedAt?: Date;
 }
 
-export interface CycleCategory {
-  cycle: number;
+export interface Cycle {
+  id: string;
+  description: string;
+  categories: Category[];
+}
+
+export enum CategoryType {
+  reform = 0,
+  first_cut = 1,
+  second_cut = 2,
+  third_cut = 3,
+  fourth_cut = 4,
+  fifth_cut = 5,
+  sixth_cut = 6,
+  seventh_cut = 7,
+  eighth_cut = 8,
+  ninth_cut = 9,
+  tenth_cut = 10
+}
+
+export interface Category {
+  id: string;
+  cycle: CategoryType;
   name: string;
   expectedProductivity: number;
   standardRevenue: number;
   standardCosts: number;
+  plots: Plot[];
+  soilPreparations: SoilPreparation[];
+  parentCategoryId?: string;
+}
+
+export interface SoilPreparation {
+  id: string;
+  name: string;
+  description?: string;
+  actions: SoilPreparationAction[];
+  totalCost: number;
+  estimatedDuration: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SoilPreparationAction {
+  id: string;
+  soilPreparationId: string;
+  productId: string;
+  dosage: number;
+  dosageUnit: string;
+  applicationMethod?: string;
+  engineerReportBlob?: string;
+  order: number;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  type: 'pesticide' | 'fertilizer' | 'herbicide' | 'soil_corrector' | 'pest_control_biological' | 'pest_control_chemical';
+  activeIngredient?: string;
+  concentration?: string;
+  unitOfMeasure: string;
+  costPerUnit: number;
+  supplier?: string;
+  registrationNumber?: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface CategoryHistory {
+  id: string;
+  categoryId: string;
+  configurationDate: Date;
+  plotIds: string[];
+  soilPreparationIds: string[];
+  changedBy: string;
+  notes?: string;
 }
 
 export interface Production {
