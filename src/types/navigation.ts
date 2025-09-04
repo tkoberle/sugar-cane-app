@@ -22,6 +22,8 @@ export type CyclesStackParamList = {
   ProductionEntry: { plotId: string };
   ATRTracking: { productionId: string };
   CyclePlanning: undefined;
+  CategoryManagement: undefined;
+  CategoryForm: { categoryId?: string };
 };
 
 export type FinanceStackParamList = {

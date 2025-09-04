@@ -2,7 +2,7 @@ import { executeQuery, executeTransaction } from '../connection';
 import { Category, CategoryType, CategoryHistory } from '../../types/entities';
 
 export class CategoryRepository {
-  static async create(category: Omit<Category, 'plots' | 'soilPreparations'>): Promise<string> {
+  static async create(category: Omit<Category, 'id' | 'plots' | 'soilPreparations'>): Promise<string> {
     const id = `category_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     await executeQuery(
@@ -33,11 +33,13 @@ export class CategoryRepository {
     const row = result.rows.raw()[0];
     
     // Get associated plots
+    console.log('Loading plots for category:', id);
     const plotsResult = await executeQuery(`
       SELECT p.* FROM plots p
       INNER JOIN plot_categories pc ON p.id = pc.plot_id
       WHERE pc.category_id = ? AND pc.is_active = 1
     `, [id]);
+    console.log('Found plots for category:', plotsResult.rows.length);
 
     // Get associated soil preparations
     const soilPrepsResult = await executeQuery(`
@@ -56,20 +58,20 @@ export class CategoryRepository {
       plots: plotsResult.rows.raw().map(p => ({
         ...p,
         currentCycle: p.current_cycle,
-        plantingDate: new Date(p.planting_date),
-        lastHarvestDate: p.last_harvest_date ? new Date(p.last_harvest_date) : undefined,
+        plantingDate: p.planting_date || new Date().toISOString(),
+        lastHarvestDate: p.last_harvest_date || undefined,
         coordinates: p.coordinates ? JSON.parse(p.coordinates) : undefined,
         soilType: p.soil_type,
-        createdAt: new Date(p.created_at),
-        updatedAt: new Date(p.updated_at)
+        createdAt: p.created_at || undefined,
+        updatedAt: p.updated_at || undefined
       })),
       soilPreparations: soilPrepsResult.rows.raw().map(sp => ({
         ...sp,
         actions: [], // Will be loaded separately if needed
         totalCost: sp.total_cost,
         estimatedDuration: sp.estimated_duration,
-        createdAt: new Date(sp.created_at),
-        updatedAt: new Date(sp.updated_at)
+        createdAt: sp.created_at || undefined,
+        updatedAt: sp.updated_at || undefined
       })),
       parentCategoryId: row.parent_category_id
     };
@@ -88,6 +90,8 @@ export class CategoryRepository {
   }
 
   static async update(id: string, updates: Partial<Omit<Category, 'id' | 'plots' | 'soilPreparations'>>): Promise<void> {
+    console.log('CategoryRepository.update called with:', { id, updates });
+    
     const fields: string[] = [];
     const values: any[] = [];
 
@@ -116,15 +120,19 @@ export class CategoryRepository {
       values.push(updates.parentCategoryId);
     }
 
-    if (fields.length === 0) return;
+    if (fields.length === 0) {
+      console.log('No fields to update');
+      return;
+    }
 
     fields.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
 
-    await executeQuery(
-      `UPDATE categories SET ${fields.join(', ')} WHERE id = ?`,
-      values
-    );
+    const query = `UPDATE categories SET ${fields.join(', ')} WHERE id = ?`;
+    console.log('Executing update query:', { query, values });
+    
+    await executeQuery(query, values);
+    console.log('Category update completed successfully');
   }
 
   static async delete(id: string): Promise<void> {
@@ -139,22 +147,29 @@ export class CategoryRepository {
   }
 
   static async assignPlots(categoryId: string, plotIds: string[]): Promise<void> {
+    console.log('CategoryRepository.assignPlots called with:', { categoryId, plotIds });
+    
     await executeTransaction(async () => {
       // Deactivate existing assignments
+      console.log('Deactivating existing plot assignments for category:', categoryId);
       await executeQuery(
         'UPDATE plot_categories SET is_active = 0 WHERE category_id = ?',
         [categoryId]
       );
 
       // Create new assignments
+      console.log('Creating new plot assignments:', plotIds);
       for (const plotId of plotIds) {
+        const assignmentId = `pc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         await executeQuery(
           `INSERT INTO plot_categories (id, plot_id, category_id, is_active)
            VALUES (?, ?, ?, 1)`,
-          [`pc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, plotId, categoryId]
+          [assignmentId, plotId, categoryId]
         );
       }
     });
+    
+    console.log('Plot assignments completed successfully');
   }
 
   static async assignSoilPreparations(categoryId: string, soilPrepIds: string[]): Promise<void> {
@@ -182,7 +197,7 @@ export class CategoryRepository {
       [
         id,
         history.categoryId,
-        history.configurationDate.toISOString(),
+        history.configurationDate,
         JSON.stringify(history.plotIds),
         JSON.stringify(history.soilPreparationIds),
         history.changedBy,
@@ -202,7 +217,7 @@ export class CategoryRepository {
     return result.rows.raw().map(row => ({
       id: row.id,
       categoryId: row.category_id,
-      configurationDate: new Date(row.configuration_date),
+      configurationDate: row.configuration_date,
       plotIds: JSON.parse(row.plot_ids),
       soilPreparationIds: JSON.parse(row.soil_preparation_ids),
       changedBy: row.changed_by,
