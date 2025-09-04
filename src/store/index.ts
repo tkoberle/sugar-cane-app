@@ -25,7 +25,6 @@ export {
   createPlot, 
   updatePlot, 
   deletePlot, 
-  fetchPlotsByCycle, 
   fetchPlotsByStatus,
   clearSelectedPlot,
   clearPlotsError 

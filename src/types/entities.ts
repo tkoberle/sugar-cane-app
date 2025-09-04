@@ -3,7 +3,6 @@ export interface Plot {
   number: number;
   name?: string;
   area: number;
-  currentCycle: number;
   plantingDate: string;
   lastHarvestDate?: string;
   status: 'active' | 'reform' | 'rotation' | 'new';

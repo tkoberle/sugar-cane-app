@@ -13,12 +13,14 @@ interface PlotCardProps {
     isAssigned: boolean;
     categoryName?: string;
     categoryId?: string;
+    cycle?: number;
   };
 }
 
 const PlotCard: React.FC<PlotCardProps> = ({ plot, onPress, categoryInfo }) => {
-  const cycleCategory = cycleCategoriesData.find(cat => cat.cycle === plot.currentCycle);
-  const cycleColor = getCycleColor(plot.currentCycle);
+  const currentCycle = categoryInfo?.cycle;
+  const cycleCategory = currentCycle !== undefined ? cycleCategoriesData.find(cat => cat.cycle === currentCycle) : undefined;
+  const cycleColor = currentCycle !== undefined ? getCycleColor(currentCycle) : '#9E9E9E';
 
   return (
     <TouchableOpacity onPress={() => onPress?.(plot)} activeOpacity={0.7}>
@@ -28,9 +30,11 @@ const PlotCard: React.FC<PlotCardProps> = ({ plot, onPress, categoryInfo }) => {
             <Text style={styles.plotNumber} numberOfLines={1} ellipsizeMode="tail">
               {plot.name ? `${plot.number} - ${plot.name}` : `${plot.number}`}
             </Text>
-            <View style={[styles.cycleBadge, { backgroundColor: cycleColor }]}>
-              <Text style={styles.cycleText}>{plot.currentCycle}</Text>
-            </View>
+            {currentCycle !== undefined && (
+              <View style={[styles.cycleBadge, { backgroundColor: cycleColor }]}>
+                <Text style={styles.cycleText}>{currentCycle}</Text>
+              </View>
+            )}
           </View>
           <StatusBadge status={plot.status} size="small" />
         </View>
@@ -44,7 +48,7 @@ const PlotCard: React.FC<PlotCardProps> = ({ plot, onPress, categoryInfo }) => {
           <View style={styles.row}>
             <Text style={styles.label}>Ciclo:</Text>
             <Text style={styles.value}>
-              {cycleCategory ? cycleCategory.name : `Ciclo ${plot.currentCycle}`}
+              {cycleCategory ? cycleCategory.name : currentCycle !== undefined ? `Ciclo ${currentCycle}` : 'Não atribuído'}
             </Text>
           </View>
           

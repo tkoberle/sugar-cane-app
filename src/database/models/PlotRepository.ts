@@ -5,7 +5,7 @@ export class PlotRepository {
   static async getAllPlots(): Promise<Plot[]> {
     const result = await executeQuery(`
       SELECT 
-        id, number, name, area, current_cycle as currentCycle,
+        id, number, name, area,
         planting_date as plantingDate, last_harvest_date as lastHarvestDate,
         status, coordinates, soil_type as soilType, notes,
         created_at as createdAt, updated_at as updatedAt
@@ -35,7 +35,7 @@ export class PlotRepository {
   static async getPlotById(id: string): Promise<Plot | null> {
     const result = await executeQuery(`
       SELECT 
-        id, number, name, area, current_cycle as currentCycle,
+        id, number, name, area,
         planting_date as plantingDate, last_harvest_date as lastHarvestDate,
         status, coordinates, soil_type as soilType, notes,
         created_at as createdAt, updated_at as updatedAt
@@ -65,15 +65,14 @@ export class PlotRepository {
 
     await executeQuery(`
       INSERT INTO plots (
-        id, number, name, area, current_cycle, planting_date, last_harvest_date,
+        id, number, name, area, planting_date, last_harvest_date,
         status, coordinates, soil_type, notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       nextNumber,
       plot.name || null,
       plot.area,
-      plot.currentCycle,
       plot.plantingDate,
       plot.lastHarvestDate || null,
       plot.status,
@@ -103,10 +102,6 @@ export class PlotRepository {
     if (plot.area !== undefined) {
       fields.push('area = ?');
       values.push(plot.area);
-    }
-    if (plot.currentCycle !== undefined) {
-      fields.push('current_cycle = ?');
-      values.push(plot.currentCycle);
     }
     if (plot.plantingDate !== undefined) {
       fields.push('planting_date = ?');
@@ -146,32 +141,11 @@ export class PlotRepository {
     await executeQuery('DELETE FROM plots WHERE id = ?', [id]);
   }
 
-  static async getPlotsByCycle(cycle: number): Promise<Plot[]> {
-    const result = await executeQuery(`
-      SELECT 
-        id, number, name, area, current_cycle as currentCycle,
-        planting_date as plantingDate, last_harvest_date as lastHarvestDate,
-        status, coordinates, soil_type as soilType, notes,
-        created_at as createdAt, updated_at as updatedAt
-      FROM plots 
-      WHERE current_cycle = ?
-      ORDER BY number
-    `, [cycle]);
-
-    return result.rows.raw().map(row => ({
-      ...row,
-      plantingDate: row.plantingDate || new Date().toISOString(),
-      lastHarvestDate: row.lastHarvestDate || undefined,
-      coordinates: row.coordinates ? JSON.parse(row.coordinates) : undefined,
-      createdAt: row.createdAt || undefined,
-      updatedAt: row.updatedAt || undefined,
-    }));
-  }
 
   static async getPlotsByStatus(status: Plot['status']): Promise<Plot[]> {
     const result = await executeQuery(`
       SELECT 
-        id, number, name, area, current_cycle as currentCycle,
+        id, number, name, area,
         planting_date as plantingDate, last_harvest_date as lastHarvestDate,
         status, coordinates, soil_type as soilType, notes,
         created_at as createdAt, updated_at as updatedAt

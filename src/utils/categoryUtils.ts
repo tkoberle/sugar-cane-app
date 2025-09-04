@@ -10,6 +10,7 @@ export const getPlotCategoryInfo = (
   isAssigned: boolean;
   categoryName?: string;
   categoryId?: string;
+  cycle?: number;
 } => {
   // Find the category that contains this plot
   const assignedCategory = categories.find(category => 
@@ -21,6 +22,7 @@ export const getPlotCategoryInfo = (
       isAssigned: true,
       categoryName: assignedCategory.name,
       categoryId: assignedCategory.id,
+      cycle: assignedCategory.cycle,
     };
   }
 
@@ -41,6 +43,7 @@ export const getPlotsWithCategoryInfo = (
     isAssigned: boolean;
     categoryName?: string;
     categoryId?: string;
+    cycle?: number;
   };
 }> => {
   return plots.map(plot => ({
@@ -50,16 +53,13 @@ export const getPlotsWithCategoryInfo = (
 };
 
 /**
- * Get plots that are not assigned to any category for a specific cycle
+ * Get plots that are not assigned to any category
  */
-export const getUnassignedPlotsForCycle = (
+export const getUnassignedPlots = (
   plots: Plot[], 
-  categories: Category[], 
-  cycle: number
+  categories: Category[]
 ): Plot[] => {
-  const plotsInCycle = plots.filter(plot => plot.currentCycle === cycle);
-  
-  return plotsInCycle.filter(plot => {
+  return plots.filter(plot => {
     const categoryInfo = getPlotCategoryInfo(plot.id, categories);
     return !categoryInfo.isAssigned;
   });
@@ -75,4 +75,18 @@ export const isPlotInCategory = (
 ): boolean => {
   const category = categories.find(cat => cat.id === categoryId);
   return category ? category.plots.some(plot => plot.id === plotId) : false;
+};
+
+/**
+ * Get the cycle number for a plot based on its category assignment
+ */
+export const getPlotCycle = (
+  plotId: string, 
+  categories: Category[]
+): number | undefined => {
+  const assignedCategory = categories.find(category => 
+    category.plots.some(plot => plot.id === plotId)
+  );
+  
+  return assignedCategory?.cycle;
 };

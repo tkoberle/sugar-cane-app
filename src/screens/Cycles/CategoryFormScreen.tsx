@@ -175,9 +175,8 @@ const CategoryFormScreen: React.FC = () => {
   };
 
   const addPlotToCategory = async (plotId: string) => {
-    // Check if plot is already in another category for this cycle
+    // Check if plot is already in another category
     const existingCategory = allCategories.find(cat => 
-      cat.cycle === watchedCycle && 
       cat.plots.some(p => p.id === plotId) &&
       cat.id !== categoryId // Exclude current category if editing
     );
@@ -205,10 +204,20 @@ const CategoryFormScreen: React.FC = () => {
   };
 
   const getAvailablePlotsForCycle = () => {
-    return plots.filter(plot => 
-      plot.currentCycle === watchedCycle && 
-      !selectedPlotIds.includes(plot.id)
-    );
+    return plots.filter(plot => {
+      // Exclude plots already selected for this category
+      if (selectedPlotIds.includes(plot.id)) {
+        return false;
+      }
+      
+      // Exclude plots already assigned to other categories
+      const isAssignedToOtherCategory = allCategories.some(cat => 
+        cat.id !== categoryId && // Don't exclude from current category being edited
+        cat.plots.some(p => p.id === plot.id)
+      );
+      
+      return !isAssignedToOtherCategory;
+    });
   };
 
   const getSelectedPlots = () => {
@@ -477,8 +486,9 @@ const CategoryFormScreen: React.FC = () => {
             {getAvailablePlotsForCycle().length > 0 ? (
               <View style={styles.availablePlotsContainer}>
                 {getAvailablePlotsForCycle().map((plot) => {
+                  // Since we now filter out assigned plots, this should never find a conflict
+                  // But keeping for consistency and edge cases
                   const conflictCategory = allCategories.find(cat => 
-                    cat.cycle === watchedCycle && 
                     cat.plots.some(p => p.id === plot.id) &&
                     cat.id !== categoryId
                   );
@@ -510,7 +520,7 @@ const CategoryFormScreen: React.FC = () => {
               </View>
             ) : (
               <Text style={styles.noAvailablePlots}>
-                Todos os talhões do ciclo {watchedCycle} já estão associados a esta categoria.
+                Todos os talhões já estão associados a categorias.
               </Text>
             )}
           </ScrollView>

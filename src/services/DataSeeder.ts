@@ -46,15 +46,14 @@ export class DataSeeder {
 
     await executeQuery(`
       INSERT INTO plots (
-        id, number, name, area, current_cycle, planting_date, last_harvest_date,
+        id, number, name, area, planting_date, last_harvest_date,
         status, coordinates, soil_type, notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       plot.number,
       plot.name || null,
       plot.area,
-      plot.currentCycle,
       plot.plantingDate,
       plot.lastHarvestDate || null,
       plot.status,
