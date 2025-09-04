@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Plot } from '../types';
+import { Ionicons } from '@expo/vector-icons';
+import { Plot, Category } from '../types';
 import { Card, StatusBadge } from './ui';
 import { formatArea, getCycleColor } from '../utils';
 import { cycleCategoriesData } from '../constants/cycleCategoriesData';
@@ -8,9 +9,14 @@ import { cycleCategoriesData } from '../constants/cycleCategoriesData';
 interface PlotCardProps {
   plot: Plot;
   onPress?: (plot: Plot) => void;
+  categoryInfo?: {
+    isAssigned: boolean;
+    categoryName?: string;
+    categoryId?: string;
+  };
 }
 
-const PlotCard: React.FC<PlotCardProps> = ({ plot, onPress }) => {
+const PlotCard: React.FC<PlotCardProps> = ({ plot, onPress, categoryInfo }) => {
   const cycleCategory = cycleCategoriesData.find(cat => cat.cycle === plot.currentCycle);
   const cycleColor = getCycleColor(plot.currentCycle);
 
@@ -48,6 +54,38 @@ const PlotCard: React.FC<PlotCardProps> = ({ plot, onPress }) => {
               <Text style={styles.value}>{plot.soilType}</Text>
             </View>
           )}
+          
+          {/* Category Assignment Info */}
+          <View style={styles.row}>
+            <Text style={styles.label}>Categoria:</Text>
+            <View style={styles.categoryInfo}>
+              {categoryInfo?.isAssigned ? (
+                <>
+                  <Ionicons 
+                    name="checkmark-circle" 
+                    size={16} 
+                    color="#4CAF50" 
+                    style={styles.categoryIcon}
+                  />
+                  <Text style={[styles.value, styles.assignedCategory]} numberOfLines={1}>
+                    {categoryInfo.categoryName}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons 
+                    name="remove-circle-outline" 
+                    size={16} 
+                    color="#FF9800" 
+                    style={styles.categoryIcon}
+                  />
+                  <Text style={[styles.value, styles.unassignedCategory]}>
+                    Não atribuído
+                  </Text>
+                </>
+              )}
+            </View>
+          </View>
         </View>
         
         {plot.notes && (
@@ -122,6 +160,26 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#EEEEEE',
+  },
+  categoryInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  categoryIcon: {
+    marginRight: 4,
+  },
+  assignedCategory: {
+    color: '#4CAF50',
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'right',
+  },
+  unassignedCategory: {
+    color: '#FF9800',
+    fontWeight: '500',
+    fontStyle: 'italic',
   },
 });
 
