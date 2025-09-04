@@ -34,7 +34,7 @@ const PlotEditScreen: React.FC = () => {
     try {
       const plotData = {
         ...formData,
-        plantingDate: formData.plantingDate ? new Date(formData.plantingDate) : undefined,
+        plantingDate: formData.plantingDate || undefined,
       };
 
       if (isEditing && plotId) {

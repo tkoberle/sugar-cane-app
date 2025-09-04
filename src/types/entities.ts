@@ -4,14 +4,14 @@ export interface Plot {
   name?: string;
   area: number;
   currentCycle: number;
-  plantingDate: Date;
-  lastHarvestDate?: Date;
+  plantingDate: string;
+  lastHarvestDate?: string;
   status: 'active' | 'reform' | 'rotation' | 'new';
   coordinates?: {lat: number, lng: number}[];
   soilType?: string;
   notes?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Cycle {
@@ -53,8 +53,8 @@ export interface SoilPreparation {
   actions: SoilPreparationAction[];
   totalCost: number;
   estimatedDuration: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SoilPreparationAction {
@@ -80,13 +80,13 @@ export interface Product {
   supplier?: string;
   registrationNumber?: string;
   isActive: boolean;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface CategoryHistory {
   id: string;
   categoryId: string;
-  configurationDate: Date;
+  configurationDate: string;
   plotIds: string[];
   soilPreparationIds: string[];
   changedBy: string;
@@ -97,13 +97,13 @@ export interface Production {
   id: string;
   plotId: string;
   cycle: number;
-  harvestDate: Date;
+  harvestDate: string;
   tonnage: number;
   atr: number;
   revenue: number;
   costs: number;
   notes?: string;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export interface ATRPayment {
@@ -118,26 +118,26 @@ export interface ATRPayment {
     other?: number;
   };
   netValue: number;
-  paymentDate: Date;
+  paymentDate: string;
 }
 
 export interface SafraPlanning {
   id: string;
   year: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   previousRevenue: number;
   personalNeeds: number;
   availableBudget: number;
   plannedReforms: string[];
   status: 'planning' | 'active' | 'completed';
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export interface CashFlow {
   id: string;
   safraId: string;
-  month: Date;
+  month: string;
   revenue: number;
   expenses: number;
   balance: number;
@@ -169,9 +169,9 @@ export interface InputApplication {
   quantity: number;
   unitCost: number;
   totalCost: number;
-  applicationDate: Date;
+  applicationDate: string;
   dosagePerHectare: number;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export interface CostCategory {

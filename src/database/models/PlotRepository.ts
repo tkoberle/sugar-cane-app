@@ -15,11 +15,11 @@ export class PlotRepository {
 
     return result.rows.raw().map(row => ({
       ...row,
-      plantingDate: row.plantingDate ? new Date(row.plantingDate) : new Date(),
-      lastHarvestDate: row.lastHarvestDate ? new Date(row.lastHarvestDate) : undefined,
+      plantingDate: row.plantingDate || new Date().toISOString(),
+      lastHarvestDate: row.lastHarvestDate || undefined,
       coordinates: row.coordinates ? JSON.parse(row.coordinates) : undefined,
-      createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
-      updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
+      createdAt: row.createdAt || undefined,
+      updatedAt: row.updatedAt || undefined,
     }));
   }
 
@@ -50,11 +50,11 @@ export class PlotRepository {
     const row = result.rows.item(0);
     return {
       ...row,
-      plantingDate: row.plantingDate ? new Date(row.plantingDate) : new Date(),
-      lastHarvestDate: row.lastHarvestDate ? new Date(row.lastHarvestDate) : undefined,
+      plantingDate: row.plantingDate || new Date().toISOString(),
+      lastHarvestDate: row.lastHarvestDate || undefined,
       coordinates: row.coordinates ? JSON.parse(row.coordinates) : undefined,
-      createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
-      updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
+      createdAt: row.createdAt || undefined,
+      updatedAt: row.updatedAt || undefined,
     };
   }
 
@@ -74,8 +74,8 @@ export class PlotRepository {
       plot.name || null,
       plot.area,
       plot.currentCycle,
-      plot.plantingDate.toISOString(),
-      plot.lastHarvestDate?.toISOString() || null,
+      plot.plantingDate,
+      plot.lastHarvestDate || null,
       plot.status,
       plot.coordinates ? JSON.stringify(plot.coordinates) : null,
       plot.soilType || null,
@@ -110,11 +110,11 @@ export class PlotRepository {
     }
     if (plot.plantingDate !== undefined) {
       fields.push('planting_date = ?');
-      values.push(plot.plantingDate.toISOString());
+      values.push(plot.plantingDate);
     }
     if (plot.lastHarvestDate !== undefined) {
       fields.push('last_harvest_date = ?');
-      values.push(plot.lastHarvestDate?.toISOString() || null);
+      values.push(plot.lastHarvestDate || null);
     }
     if (plot.status !== undefined) {
       fields.push('status = ?');
@@ -160,11 +160,11 @@ export class PlotRepository {
 
     return result.rows.raw().map(row => ({
       ...row,
-      plantingDate: row.plantingDate ? new Date(row.plantingDate) : new Date(),
-      lastHarvestDate: row.lastHarvestDate ? new Date(row.lastHarvestDate) : undefined,
+      plantingDate: row.plantingDate || new Date().toISOString(),
+      lastHarvestDate: row.lastHarvestDate || undefined,
       coordinates: row.coordinates ? JSON.parse(row.coordinates) : undefined,
-      createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
-      updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
+      createdAt: row.createdAt || undefined,
+      updatedAt: row.updatedAt || undefined,
     }));
   }
 
@@ -182,11 +182,11 @@ export class PlotRepository {
 
     return result.rows.raw().map(row => ({
       ...row,
-      plantingDate: row.plantingDate ? new Date(row.plantingDate) : new Date(),
-      lastHarvestDate: row.lastHarvestDate ? new Date(row.lastHarvestDate) : undefined,
+      plantingDate: row.plantingDate || new Date().toISOString(),
+      lastHarvestDate: row.lastHarvestDate || undefined,
       coordinates: row.coordinates ? JSON.parse(row.coordinates) : undefined,
-      createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
-      updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
+      createdAt: row.createdAt || undefined,
+      updatedAt: row.updatedAt || undefined,
     }));
   }
 }
