@@ -3,6 +3,7 @@ export const createTablesSQL = [
   `CREATE TABLE IF NOT EXISTS plots (
     id TEXT PRIMARY KEY,
     number INTEGER UNIQUE,
+    name TEXT,
     area REAL NOT NULL,
     current_cycle INTEGER DEFAULT 0,
     planting_date TEXT,
@@ -84,24 +85,106 @@ export const createTablesSQL = [
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`,
 
-  // Cycle categories (reference data)
-  `CREATE TABLE IF NOT EXISTS cycle_categories (
-    cycle INTEGER PRIMARY KEY,
+  // Cycles
+  `CREATE TABLE IF NOT EXISTS cycles (
+    id TEXT PRIMARY KEY,
+    description TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // Categories
+  `CREATE TABLE IF NOT EXISTS categories (
+    id TEXT PRIMARY KEY,
+    cycle INTEGER NOT NULL,
     name TEXT NOT NULL,
     expected_productivity REAL NOT NULL,
     standard_revenue REAL NOT NULL,
-    standard_costs REAL NOT NULL
+    standard_costs REAL NOT NULL,
+    parent_category_id TEXT REFERENCES categories(id),
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // Plot category assignments
+  `CREATE TABLE IF NOT EXISTS plot_categories (
+    id TEXT PRIMARY KEY,
+    plot_id TEXT REFERENCES plots(id),
+    category_id TEXT REFERENCES categories(id),
+    assigned_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+  )`,
+
+  // Products for soil preparation
+  `CREATE TABLE IF NOT EXISTS products (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    brand TEXT NOT NULL,
+    type TEXT NOT NULL,
+    active_ingredient TEXT,
+    concentration TEXT,
+    unit_of_measure TEXT NOT NULL,
+    cost_per_unit REAL NOT NULL,
+    supplier TEXT,
+    registration_number TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // Soil preparations (tratos)
+  `CREATE TABLE IF NOT EXISTS soil_preparations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    total_cost REAL DEFAULT 0,
+    estimated_duration INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // Soil preparation actions
+  `CREATE TABLE IF NOT EXISTS soil_preparation_actions (
+    id TEXT PRIMARY KEY,
+    soil_preparation_id TEXT REFERENCES soil_preparations(id),
+    product_id TEXT REFERENCES products(id),
+    dosage REAL NOT NULL,
+    dosage_unit TEXT NOT NULL,
+    application_method TEXT,
+    engineer_report_blob TEXT,
+    action_order INTEGER NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // Category soil preparation associations
+  `CREATE TABLE IF NOT EXISTS category_soil_preparations (
+    id TEXT PRIMARY KEY,
+    category_id TEXT REFERENCES categories(id),
+    soil_preparation_id TEXT REFERENCES soil_preparations(id),
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // Category configuration history
+  `CREATE TABLE IF NOT EXISTS category_history (
+    id TEXT PRIMARY KEY,
+    category_id TEXT REFERENCES categories(id),
+    configuration_date TEXT NOT NULL,
+    plot_ids TEXT NOT NULL,
+    soil_preparation_ids TEXT NOT NULL,
+    changed_by TEXT,
+    notes TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`
 ];
 
-export const insertCycleCategoriesSQL = `
-  INSERT OR REPLACE INTO cycle_categories (cycle, name, expected_productivity, standard_revenue, standard_costs) VALUES
-  (0, 'Plantio Novo', 0, 0, 365.38),
-  (1, 'Primeiro Corte', 110, 19774.02, 1984.43),
-  (2, 'Segundo Corte', 100, 17976.38, 1759.43),
-  (3, 'Terceiro Corte', 90, 16178.75, 1674.44),
-  (4, 'Quarto Corte', 85, 15279.93, 3734.20),
-  (5, 'Quinto Corte', 80, 14381.11, 0)
+export const insertDefaultCategoriesSQL = `
+  INSERT OR REPLACE INTO categories (id, cycle, name, expected_productivity, standard_revenue, standard_costs) VALUES
+  ('reform', 0, 'Reforma', 0, 0, 365.38),
+  ('first_cut', 1, 'Primeiro Corte', 110, 19774.02, 1984.43),
+  ('second_cut', 2, 'Segundo Corte', 100, 17976.38, 1759.43),
+  ('third_cut', 3, 'Terceiro Corte', 90, 16178.75, 1674.44),
+  ('fourth_cut', 4, 'Quarto Corte', 85, 15279.93, 3734.20),
+  ('fifth_cut', 5, 'Quinto Corte', 80, 14381.11, 0)
 `;
 
 export const createIndexesSQL = [
@@ -111,5 +194,16 @@ export const createIndexesSQL = [
   'CREATE INDEX IF NOT EXISTS idx_productions_cycle ON productions(cycle)',
   'CREATE INDEX IF NOT EXISTS idx_atr_payments_production ON atr_payments(production_id)',
   'CREATE INDEX IF NOT EXISTS idx_cash_flow_safra ON cash_flow(safra_id)',
-  'CREATE INDEX IF NOT EXISTS idx_input_applications_plot ON input_applications(plot_id)'
+  'CREATE INDEX IF NOT EXISTS idx_input_applications_plot ON input_applications(plot_id)',
+  'CREATE INDEX IF NOT EXISTS idx_plot_categories_plot ON plot_categories(plot_id)',
+  'CREATE INDEX IF NOT EXISTS idx_plot_categories_category ON plot_categories(category_id)',
+  'CREATE INDEX IF NOT EXISTS idx_categories_cycle ON categories(cycle)',
+  'CREATE INDEX IF NOT EXISTS idx_categories_parent ON categories(parent_category_id)',
+  'CREATE INDEX IF NOT EXISTS idx_soil_prep_actions_prep ON soil_preparation_actions(soil_preparation_id)',
+  'CREATE INDEX IF NOT EXISTS idx_soil_prep_actions_product ON soil_preparation_actions(product_id)',
+  'CREATE INDEX IF NOT EXISTS idx_category_soil_prep_category ON category_soil_preparations(category_id)',
+  'CREATE INDEX IF NOT EXISTS idx_category_soil_prep_soil ON category_soil_preparations(soil_preparation_id)',
+  'CREATE INDEX IF NOT EXISTS idx_category_history_category ON category_history(category_id)',
+  'CREATE INDEX IF NOT EXISTS idx_products_type ON products(type)',
+  'CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active)'
 ];

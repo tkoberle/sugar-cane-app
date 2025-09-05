@@ -1,37 +1,108 @@
 export interface Plot {
   id: string;
   number: number;
+  name?: string;
   area: number;
-  currentCycle: number;
-  plantingDate: Date;
-  lastHarvestDate?: Date;
+  plantingDate: string;
+  lastHarvestDate?: string;
   status: 'active' | 'reform' | 'rotation' | 'new';
   coordinates?: {lat: number, lng: number}[];
   soilType?: string;
   notes?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface CycleCategory {
-  cycle: number;
+export interface Cycle {
+  id: string;
+  description: string;
+  categories: Category[];
+}
+
+export enum CategoryType {
+  reform = 0,
+  first_cut = 1,
+  second_cut = 2,
+  third_cut = 3,
+  fourth_cut = 4,
+  fifth_cut = 5,
+  sixth_cut = 6,
+  seventh_cut = 7,
+  eighth_cut = 8,
+  ninth_cut = 9,
+  tenth_cut = 10
+}
+
+export interface Category {
+  id: string;
+  cycle: CategoryType;
   name: string;
   expectedProductivity: number;
   standardRevenue: number;
   standardCosts: number;
+  plots: Plot[];
+  soilPreparations: SoilPreparation[];
+  parentCategoryId?: string;
+}
+
+export interface SoilPreparation {
+  id: string;
+  name: string;
+  description?: string;
+  actions: SoilPreparationAction[];
+  totalCost: number;
+  estimatedDuration: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SoilPreparationAction {
+  id: string;
+  soilPreparationId: string;
+  productId: string;
+  dosage: number;
+  dosageUnit: string;
+  applicationMethod?: string;
+  engineerReportBlob?: string;
+  order: number;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  type: 'pesticide' | 'fertilizer' | 'herbicide' | 'soil_corrector' | 'pest_control_biological' | 'pest_control_chemical';
+  activeIngredient?: string;
+  concentration?: string;
+  unitOfMeasure: string;
+  costPerUnit: number;
+  supplier?: string;
+  registrationNumber?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CategoryHistory {
+  id: string;
+  categoryId: string;
+  configurationDate: string;
+  plotIds: string[];
+  soilPreparationIds: string[];
+  changedBy: string;
+  notes?: string;
 }
 
 export interface Production {
   id: string;
   plotId: string;
   cycle: number;
-  harvestDate: Date;
+  harvestDate: string;
   tonnage: number;
   atr: number;
   revenue: number;
   costs: number;
   notes?: string;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export interface ATRPayment {
@@ -46,26 +117,26 @@ export interface ATRPayment {
     other?: number;
   };
   netValue: number;
-  paymentDate: Date;
+  paymentDate: string;
 }
 
 export interface SafraPlanning {
   id: string;
   year: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   previousRevenue: number;
   personalNeeds: number;
   availableBudget: number;
   plannedReforms: string[];
   status: 'planning' | 'active' | 'completed';
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export interface CashFlow {
   id: string;
   safraId: string;
-  month: Date;
+  month: string;
   revenue: number;
   expenses: number;
   balance: number;
@@ -97,9 +168,9 @@ export interface InputApplication {
   quantity: number;
   unitCost: number;
   totalCost: number;
-  applicationDate: Date;
+  applicationDate: string;
   dosagePerHectare: number;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export interface CostCategory {

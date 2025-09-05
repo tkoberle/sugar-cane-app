@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { createTablesSQL, insertCycleCategoriesSQL, createIndexesSQL } from './schema';
+import { createTablesSQL, insertDefaultCategoriesSQL, createIndexesSQL } from './schema';
 
 // Platform-specific SQLite import
 let SQLite: any;
@@ -15,13 +15,13 @@ if (Platform.OS === 'web') {
       getAllAsync: (query: string) => {
         // Mock plots data for web
         console.log('[WEB] getAllAsync called with query:', query);
-        if (query.includes('FROM plots')) {
+        if (query.includes('FROM plots') && !query.includes('MAX(number)')) {
           console.log('[WEB] Returning', samplePlots.length, 'sample plots');
           return Promise.resolve(samplePlots.map(plot => ({
             id: plot.id,
             number: plot.number,
+            name: plot.name || null,
             area: plot.area,
-            currentCycle: plot.currentCycle,
             plantingDate: plot.plantingDate.toISOString(),
             lastHarvestDate: plot.lastHarvestDate?.toISOString() || null,
             status: plot.status,
@@ -31,6 +31,12 @@ if (Platform.OS === 'web') {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           })));
+        }
+        if (query.includes('MAX(number)')) {
+          // Handle getNextPlotNumber query
+          const maxNumber = Math.max(...samplePlots.map(p => p.number));
+          console.log('[WEB] MAX(number) query, returning maxNumber:', maxNumber);
+          return Promise.resolve([{ maxNumber }]);
         }
         return Promise.resolve([]);
       },
@@ -42,9 +48,9 @@ if (Platform.OS === 'web') {
             return Promise.resolve({
               id: plot.id,
               number: plot.number,
+              name: plot.name || null,
               area: plot.area,
-              currentCycle: plot.currentCycle,
-              plantingDate: plot.plantingDate.toISOString(),
+                plantingDate: plot.plantingDate.toISOString(),
               lastHarvestDate: plot.lastHarvestDate?.toISOString() || null,
               status: plot.status,
               coordinates: plot.coordinates ? JSON.stringify(plot.coordinates) : null,
@@ -108,15 +114,33 @@ const initializeDatabase = async (): Promise<void> => {
       await db.execAsync(sql);
     }
 
-    // Insert cycle categories reference data
-    await db.execAsync(insertCycleCategoriesSQL);
+    // Insert default categories reference data
+    await db.execAsync(insertDefaultCategoriesSQL);
 
     // Create indexes
     for (const sql of createIndexesSQL) {
       await db.execAsync(sql);
     }
 
+    // Run migrations for existing databases
+    try {
+      // Add name column if it doesn't exist
+      await db.execAsync('ALTER TABLE plots ADD COLUMN name TEXT');
+      console.log('Migration: Added name column to plots table');
+    } catch (error) {
+      // Column might already exist, ignore error
+      console.log('Migration: name column might already exist');
+    }
+
     console.log('Database tables created successfully');
+    
+    // Seed database with sample data (mobile only)
+    try {
+      const { DataSeeder } = require('../services/DataSeeder');
+      await DataSeeder.seedDatabase();
+    } catch (error) {
+      console.error('Error seeding database:', error);
+    }
   } catch (error) {
     console.error('Error creating database tables:', error);
     throw error;
@@ -171,6 +195,26 @@ export const executeQuery = async (
     }
   } catch (error) {
     console.error('Error executing query:', query, error);
+    throw error;
+  }
+};
+
+export const executeTransaction = async (operations: () => Promise<void>): Promise<void> => {
+  const database = getDatabase();
+  
+  if (Platform.OS === 'web') {
+    // For web, just execute operations without transaction (mock)
+    await operations();
+    return;
+  }
+
+  try {
+    await database.execAsync('BEGIN TRANSACTION');
+    await operations();
+    await database.execAsync('COMMIT');
+  } catch (error) {
+    await database.execAsync('ROLLBACK');
+    console.error('Transaction failed, rolled back:', error);
     throw error;
   }
 };

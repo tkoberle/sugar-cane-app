@@ -6,6 +6,8 @@ import CycleDetailsScreen from '../../screens/Cycles/CycleDetailsScreen';
 import ProductionEntryScreen from '../../screens/Cycles/ProductionEntryScreen';
 import ATRTrackingScreen from '../../screens/Cycles/ATRTrackingScreen';
 import CyclePlanningScreen from '../../screens/Cycles/CyclePlanningScreen';
+import CategoryManagementScreen from '../../screens/Cycles/CategoryManagementScreen';
+import CategoryFormScreen from '../../screens/Cycles/CategoryFormScreen';
 
 const Stack = createNativeStackNavigator<CyclesStackParamList>();
 
@@ -46,6 +48,16 @@ const CyclesStack: React.FC = () => {
         name="CyclePlanning" 
         component={CyclePlanningScreen}
         options={{ title: 'Planejamento de Ciclos' }}
+      />
+      <Stack.Screen 
+        name="CategoryManagement" 
+        component={CategoryManagementScreen}
+        options={{ title: 'Gerenciar Categorias' }}
+      />
+      <Stack.Screen 
+        name="CategoryForm" 
+        component={CategoryFormScreen}
+        options={{ title: 'Categoria' }}
       />
     </Stack.Navigator>
   );

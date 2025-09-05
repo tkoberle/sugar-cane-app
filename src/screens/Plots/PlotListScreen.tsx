@@ -6,8 +6,10 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchPlots } from '../../store';
 import { LoadingSpinner } from '../../components/ui';
 import PlotCard from '../../components/PlotCard';
-import { Plot } from '../../types';
+import { Plot, Category } from '../../types';
 import { PlotsStackScreenProps } from '../../types';
+import { CategoryRepository } from '../../database/models/CategoryRepository';
+import { getPlotsWithCategoryInfo } from '../../utils';
 
 type PlotListScreenNavigationProp = PlotsStackScreenProps<'PlotList'>['navigation'];
 
@@ -16,14 +18,22 @@ const PlotListScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const { plots, loading, error } = useAppSelector(state => state.plots);
   const [refreshing, setRefreshing] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    dispatch(fetchPlots());
+    const loadData = async () => {
+      await dispatch(fetchPlots());
+      const loadedCategories = await CategoryRepository.findAll();
+      setCategories(loadedCategories);
+    };
+    loadData();
   }, [dispatch]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await dispatch(fetchPlots());
+    const loadedCategories = await CategoryRepository.findAll();
+    setCategories(loadedCategories);
     setRefreshing(false);
   };
 
@@ -75,9 +85,18 @@ const PlotListScreen: React.FC = () => {
     );
   }
 
-  const renderPlotItem = ({ item }: { item: Plot }) => (
-    <PlotCard plot={item} onPress={handlePlotPress} />
-  );
+  const renderPlotItem = ({ item }: { item: Plot }) => {
+    const plotsWithCategoryInfo = getPlotsWithCategoryInfo([item], categories);
+    const categoryInfo = plotsWithCategoryInfo[0]?.categoryInfo;
+    
+    return (
+      <PlotCard 
+        plot={item} 
+        onPress={handlePlotPress} 
+        categoryInfo={categoryInfo}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
