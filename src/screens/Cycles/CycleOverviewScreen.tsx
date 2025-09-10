@@ -28,6 +28,14 @@ const CycleOverviewScreen: React.FC = () => {
       color: '#FF9800',
       onPress: () => navigation.navigate('CyclePlanning'),
     },
+    {
+      id: 'product-management',
+      title: 'Produtos Agrícolas',
+      description: 'Gerencie produtos para preparação do solo',
+      icon: 'leaf-outline',
+      color: '#4CAF50',
+      onPress: () => navigation.navigate('ProductList'),
+    },
   ];
 
   return (
