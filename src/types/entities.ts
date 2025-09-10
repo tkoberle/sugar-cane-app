@@ -67,19 +67,63 @@ export interface SoilPreparationAction {
   order: number;
 }
 
+// Enhanced Product interface following Brazilian agricultural standards (EMBRAPA/MAPA)
 export interface Product {
   id: string;
   name: string;
   brand: string;
-  type: 'pesticide' | 'fertilizer' | 'herbicide' | 'soil_corrector' | 'pest_control_biological' | 'pest_control_chemical';
+  
+  // Basic classification
+  category: 'inoculant' | 'fertilizer' | 'pesticide' | 'herbicide' | 'fungicide' | 'insecticide' | 'soil_corrector' | 'biostimulant' | 'adjuvant';
+  type: 'biological' | 'chemical' | 'organic' | 'mineral';
+  
+  // Brazilian regulatory fields (MAPA - Ministério da Agricultura)
+  registrationNumber?: string;  // Registro no MAPA
+  mapaClassification?: string;  // Classificação MAPA
   activeIngredient?: string;
   concentration?: string;
-  unitOfMeasure: string;
+  formulationType?: 'liquid' | 'solid' | 'powder' | 'granular' | 'emulsion' | 'suspension';
+  
+  // EMBRAPA Bioinsumo specific fields (for inoculants and biological products)
+  activity?: 'producer' | 'retailer' | 'both';
+  fertilizerType?: string;      // For fertilizer classification
+  species?: string;             // Microorganism species for biological products
+  guarantee?: string;           // UFC/ml, UFC/g, or other guarantee units
+  physicalNature?: 'fluid' | 'solid';
+  
+  // Commercial information
+  unitOfMeasure: string;        // kg, L, ml, g, etc.
   costPerUnit: number;
+  packageSize?: number;         // Size of commercial package
   supplier?: string;
-  registrationNumber?: string;
+  manufacturer?: string;
+  
+  // Technical specifications
+  applicationMethod?: string[];  // ['foliar', 'soil', 'seed_treatment']
+  recommendedDosage?: {
+    min: number;
+    max: number;
+    unit: string;               // kg/ha, L/ha, ml/100kg_seeds
+  };
+  targetCrops?: string[];       // ['sugar_cane', 'soy', 'corn']
+  targetPests?: string[];       // For pesticides
+  
+  // Regulatory and safety
+  toxicClass?: '1' | '2' | '3' | '4' | 'NT'; // Toxicological class (NT = Not Toxic)
+  environmentalClass?: 'I' | 'II' | 'III' | 'IV'; // Environmental impact
+  withdrawalPeriod?: number;    // Days (carência)
+  reentryPeriod?: number;       // Hours (período de reentrada)
+  
+  // Additional info
+  description?: string;
+  technicalDataSheet?: string;  // URL or base64 of technical sheet
+  safetyDataSheet?: string;     // FISPQ
+  notes?: string;
+  
+  // Status and metadata
   isActive: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CategoryHistory {

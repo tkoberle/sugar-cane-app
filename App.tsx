@@ -5,6 +5,7 @@ import { store } from './src/store';
 import { openDatabase } from './src/database';
 import { DataSeeder } from './src/services/DataSeeder';
 import RootNavigator from './src/navigation';
+import './src/utils/debugDatabase'; // Enable database debugging
 
 export default function App() {
   useEffect(() => {

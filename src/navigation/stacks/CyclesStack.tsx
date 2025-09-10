@@ -8,6 +8,9 @@ import ATRTrackingScreen from '../../screens/Cycles/ATRTrackingScreen';
 import CyclePlanningScreen from '../../screens/Cycles/CyclePlanningScreen';
 import CategoryManagementScreen from '../../screens/Cycles/CategoryManagementScreen';
 import CategoryFormScreen from '../../screens/Cycles/CategoryFormScreen';
+import ProductListScreen from '../../screens/Products/ProductListScreen';
+import ProductFormScreen from '../../screens/Products/ProductFormScreen';
+import ProductDetailsScreen from '../../screens/Products/ProductDetailsScreen';
 
 const Stack = createNativeStackNavigator<CyclesStackParamList>();
 
@@ -58,6 +61,21 @@ const CyclesStack: React.FC = () => {
         name="CategoryForm" 
         component={CategoryFormScreen}
         options={{ title: 'Categoria' }}
+      />
+      <Stack.Screen 
+        name="ProductList" 
+        component={ProductListScreen}
+        options={{ title: 'Produtos Agrícolas' }}
+      />
+      <Stack.Screen 
+        name="ProductForm" 
+        component={ProductFormScreen}
+        options={{ title: 'Cadastro de Produto' }}
+      />
+      <Stack.Screen 
+        name="ProductDetails" 
+        component={ProductDetailsScreen}
+        options={{ title: 'Detalhes do Produto' }}
       />
     </Stack.Navigator>
   );

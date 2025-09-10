@@ -24,6 +24,9 @@ export type CyclesStackParamList = {
   CyclePlanning: undefined;
   CategoryManagement: undefined;
   CategoryForm: { categoryId?: string };
+  ProductList: undefined;
+  ProductForm: { productId?: string };
+  ProductDetails: { productId: string };
 };
 
 export type FinanceStackParamList = {
